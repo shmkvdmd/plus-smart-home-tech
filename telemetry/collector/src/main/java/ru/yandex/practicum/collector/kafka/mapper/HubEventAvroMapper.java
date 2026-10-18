@@ -16,74 +16,75 @@ public class HubEventAvroMapper {
     public HubEventAvro toAvro(CollectHubEventRequest event) {
         Objects.requireNonNull(event, "Hub event must not be null");
 
-        if (event instanceof DeviceAddedEvent added) {
-            DeviceAddedEventAvro payload =
-                    DeviceAddedEventAvro.newBuilder()
-                            .setId(requiredText(added.getId(), "id"))
-                            .setType(DeviceTypeAvro.valueOf(
-                                    requiredEnum(
-                                            added.getDeviceType() == null
-                                                    ? null
-                                                    : added.getDeviceType().getValue(),
-                                            "deviceType"
-                                    )
-                            ))
-                            .build();
+        switch (event) {
+            case DeviceAddedEvent added -> {
+                DeviceAddedEventAvro payload =
+                        DeviceAddedEventAvro.newBuilder()
+                                .setId(requiredText(added.getId(), "id"))
+                                .setType(DeviceTypeAvro.valueOf(
+                                        requiredEnum(
+                                                added.getDeviceType() == null
+                                                        ? null
+                                                        : added.getDeviceType().getValue(),
+                                                "deviceType"
+                                        )
+                                ))
+                                .build();
 
-            return createHubEvent(
-                    added.getHubId(), added.getTimestamp(), payload
-            );
-        }
+                return createHubEvent(
+                        added.getHubId(), added.getTimestamp(), payload
+                );
+            }
+            case DeviceRemovedEvent removed -> {
+                DeviceRemovedEventAvro payload =
+                        DeviceRemovedEventAvro.newBuilder()
+                                .setId(requiredText(removed.getId(), "id"))
+                                .build();
 
-        if (event instanceof DeviceRemovedEvent removed) {
-            DeviceRemovedEventAvro payload =
-                    DeviceRemovedEventAvro.newBuilder()
-                            .setId(requiredText(removed.getId(), "id"))
-                            .build();
+                return createHubEvent(
+                        removed.getHubId(), removed.getTimestamp(), payload
+                );
+            }
+            case ScenarioAddedEvent added -> {
+                List<ScenarioConditionAvro> conditions =
+                        Objects.requireNonNull(
+                                        added.getConditions(), "conditions must not be null"
+                                )
+                                .stream()
+                                .map(this::toAvro)
+                                .toList();
 
-            return createHubEvent(
-                    removed.getHubId(), removed.getTimestamp(), payload
-            );
-        }
+                List<DeviceActionAvro> actions =
+                        Objects.requireNonNull(
+                                        added.getActions(), "actions must not be null"
+                                )
+                                .stream()
+                                .map(this::toAvro)
+                                .toList();
 
-        if (event instanceof ScenarioAddedEvent added) {
-            List<ScenarioConditionAvro> conditions =
-                    Objects.requireNonNull(
-                                    added.getConditions(), "conditions must not be null"
-                            )
-                            .stream()
-                            .map(this::toAvro)
-                            .toList();
+                ScenarioAddedEventAvro payload =
+                        ScenarioAddedEventAvro.newBuilder()
+                                .setName(requiredText(added.getName(), "name"))
+                                .setConditions(conditions)
+                                .setActions(actions)
+                                .build();
 
-            List<DeviceActionAvro> actions =
-                    Objects.requireNonNull(
-                                    added.getActions(), "actions must not be null"
-                            )
-                            .stream()
-                            .map(this::toAvro)
-                            .toList();
+                return createHubEvent(
+                        added.getHubId(), added.getTimestamp(), payload
+                );
+            }
+            case ScenarioRemovedEvent removed -> {
+                ScenarioRemovedEventAvro payload =
+                        ScenarioRemovedEventAvro.newBuilder()
+                                .setName(requiredText(removed.getName(), "name"))
+                                .build();
 
-            ScenarioAddedEventAvro payload =
-                    ScenarioAddedEventAvro.newBuilder()
-                            .setName(requiredText(added.getName(), "name"))
-                            .setConditions(conditions)
-                            .setActions(actions)
-                            .build();
-
-            return createHubEvent(
-                    added.getHubId(), added.getTimestamp(), payload
-            );
-        }
-
-        if (event instanceof ScenarioRemovedEvent removed) {
-            ScenarioRemovedEventAvro payload =
-                    ScenarioRemovedEventAvro.newBuilder()
-                            .setName(requiredText(removed.getName(), "name"))
-                            .build();
-
-            return createHubEvent(
-                    removed.getHubId(), removed.getTimestamp(), payload
-            );
+                return createHubEvent(
+                        removed.getHubId(), removed.getTimestamp(), payload
+                );
+            }
+            default -> {
+            }
         }
 
         throw new IllegalArgumentException(

@@ -15,83 +15,83 @@ public class SensorEventAvroMapper {
     public SensorEventAvro toAvro(CollectSensorEventRequest event) {
         Objects.requireNonNull(event, "Sensor event must not be null");
 
-        if (event instanceof ClimateSensorEvent sensor) {
-            return createSensorEvent(
-                    sensor.getId(),
-                    sensor.getHubId(),
-                    toInstant(sensor.getTimestamp()),
-                    ClimateSensorAvro.newBuilder()
-                            .setTemperatureC(requiredInt(
-                                    sensor.getTemperatureC(), "temperatureC"))
-                            .setHumidity(requiredInt(
-                                    sensor.getHumidity(), "humidity"))
-                            .setCo2Level(requiredInt(
-                                    sensor.getCo2Level(), "co2Level"))
-                            .build()
-            );
-        }
+        switch (event) {
+            case ClimateSensorEvent sensor -> {
+                return createSensorEvent(
+                        sensor.getId(),
+                        sensor.getHubId(),
+                        toInstant(sensor.getTimestamp()),
+                        ClimateSensorAvro.newBuilder()
+                                .setTemperatureC(requiredInt(
+                                        sensor.getTemperatureC(), "temperatureC"))
+                                .setHumidity(requiredInt(
+                                        sensor.getHumidity(), "humidity"))
+                                .setCo2Level(requiredInt(
+                                        sensor.getCo2Level(), "co2Level"))
+                                .build()
+                );
+            }
+            case LightSensorEvent sensor -> {
+                return createSensorEvent(
+                        sensor.getId(),
+                        sensor.getHubId(),
+                        toInstant(sensor.getTimestamp()),
+                        LightSensorAvro.newBuilder()
+                                .setLinkQuality(requiredInt(
+                                        sensor.getLinkQuality(), "linkQuality"))
+                                .setLuminosity(requiredInt(
+                                        sensor.getLuminosity(), "luminosity"))
+                                .build()
+                );
+            }
+            case MotionSensorEvent sensor -> {
+                return createSensorEvent(
+                        sensor.getId(),
+                        sensor.getHubId(),
+                        toInstant(sensor.getTimestamp()),
+                        MotionSensorAvro.newBuilder()
+                                .setLinkQuality(requiredInt(
+                                        sensor.getLinkQuality(), "linkQuality"))
+                                .setMotion(requiredBoolean(
+                                        sensor.getMotion(), "motion"))
+                                .setVoltage(requiredInt(
+                                        sensor.getVoltage(), "voltage"))
+                                .build()
+                );
+            }
+            case SwitchSensorEvent sensor -> {
+                return createSensorEvent(
+                        sensor.getId(),
+                        sensor.getHubId(),
+                        toInstant(sensor.getTimestamp()),
+                        SwitchSensorAvro.newBuilder()
+                                .setState(requiredBoolean(
+                                        sensor.getState(), "state"))
+                                .build()
+                );
+            }
+            case TemperatureSensorEvent sensor -> {
+                Instant timestamp = toInstant(sensor.getTimestamp());
+                TemperatureSensorAvro payload =
+                        TemperatureSensorAvro.newBuilder()
+                                .setId(requiredText(sensor.getId(), "id"))
+                                .setHubId(requiredText(sensor.getHubId(), "hubId"))
+                                .setTimestamp(timestamp)
+                                .setTemperatureC(requiredInt(
+                                        sensor.getTemperatureC(), "temperatureC"))
+                                .setTemperatureF(requiredInt(
+                                        sensor.getTemperatureF(), "temperatureF"))
+                                .build();
 
-        if (event instanceof LightSensorEvent sensor) {
-            return createSensorEvent(
-                    sensor.getId(),
-                    sensor.getHubId(),
-                    toInstant(sensor.getTimestamp()),
-                    LightSensorAvro.newBuilder()
-                            .setLinkQuality(requiredInt(
-                                    sensor.getLinkQuality(), "linkQuality"))
-                            .setLuminosity(requiredInt(
-                                    sensor.getLuminosity(), "luminosity"))
-                            .build()
-            );
-        }
-
-        if (event instanceof MotionSensorEvent sensor) {
-            return createSensorEvent(
-                    sensor.getId(),
-                    sensor.getHubId(),
-                    toInstant(sensor.getTimestamp()),
-                    MotionSensorAvro.newBuilder()
-                            .setLinkQuality(requiredInt(
-                                    sensor.getLinkQuality(), "linkQuality"))
-                            .setMotion(requiredBoolean(
-                                    sensor.getMotion(), "motion"))
-                            .setVoltage(requiredInt(
-                                    sensor.getVoltage(), "voltage"))
-                            .build()
-            );
-        }
-
-        if (event instanceof SwitchSensorEvent sensor) {
-            return createSensorEvent(
-                    sensor.getId(),
-                    sensor.getHubId(),
-                    toInstant(sensor.getTimestamp()),
-                    SwitchSensorAvro.newBuilder()
-                            .setState(requiredBoolean(
-                                    sensor.getState(), "state"))
-                            .build()
-            );
-        }
-
-        if (event instanceof TemperatureSensorEvent sensor) {
-            Instant timestamp = toInstant(sensor.getTimestamp());
-            TemperatureSensorAvro payload =
-                    TemperatureSensorAvro.newBuilder()
-                            .setId(requiredText(sensor.getId(), "id"))
-                            .setHubId(requiredText(sensor.getHubId(), "hubId"))
-                            .setTimestamp(timestamp)
-                            .setTemperatureC(requiredInt(
-                                    sensor.getTemperatureC(), "temperatureC"))
-                            .setTemperatureF(requiredInt(
-                                    sensor.getTemperatureF(), "temperatureF"))
-                            .build();
-
-            return createSensorEvent(
-                    sensor.getId(),
-                    sensor.getHubId(),
-                    timestamp,
-                    payload
-            );
+                return createSensorEvent(
+                        sensor.getId(),
+                        sensor.getHubId(),
+                        timestamp,
+                        payload
+                );
+            }
+            default -> {
+            }
         }
 
         throw new IllegalArgumentException(
