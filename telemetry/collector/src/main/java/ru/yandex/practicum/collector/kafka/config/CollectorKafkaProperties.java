@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "app.kafka")
 public record CollectorKafkaProperties(
+        @NotBlank String bootstrapServers,
         @NotNull @Valid Topics topics
 ) {
     public record Topics(
