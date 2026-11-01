@@ -7,7 +7,7 @@ import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.yandex.practicum.collector.kafka.serialization.AvroSpecificRecordSerializer;
+import ru.yandex.practicum.kafka.telemetry.AvroSpecificRecordSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
