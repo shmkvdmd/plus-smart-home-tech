@@ -1,22 +1,24 @@
 package ru.yandex.practicum.collector.application;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.collector.kafka.TelemetryEventPublisher;
-import ru.yandex.practicum.collector.model.CollectHubEventRequest;
-import ru.yandex.practicum.collector.model.CollectSensorEventRequest;
+import ru.yandex.practicum.collector.model.event.HubEvent;
+import ru.yandex.practicum.collector.model.event.SensorEvent;
 
 @Service
-@RequiredArgsConstructor
 public class CollectorService {
 
     private final TelemetryEventPublisher telemetryEventPublisher;
 
-    public void collectSensorEvent(CollectSensorEventRequest event) {
+    public CollectorService(TelemetryEventPublisher telemetryEventPublisher) {
+        this.telemetryEventPublisher = telemetryEventPublisher;
+    }
+
+    public void collectSensorEvent(SensorEvent event) {
         telemetryEventPublisher.publishSensorEvent(event);
     }
 
-    public void collectHubEvent(CollectHubEventRequest event) {
+    public void collectHubEvent(HubEvent event) {
         telemetryEventPublisher.publishHubEvent(event);
     }
 }

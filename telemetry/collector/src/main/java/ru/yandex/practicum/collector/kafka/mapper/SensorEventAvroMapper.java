@@ -2,147 +2,56 @@ package ru.yandex.practicum.collector.kafka.mapper;
 
 import org.apache.avro.specific.SpecificRecord;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.collector.model.*;
-import ru.yandex.practicum.kafka.telemetry.event.*;
-
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.util.Objects;
+import ru.yandex.practicum.collector.model.event.ClimateSensorEvent;
+import ru.yandex.practicum.collector.model.event.LightSensorEvent;
+import ru.yandex.practicum.collector.model.event.MotionSensorEvent;
+import ru.yandex.practicum.collector.model.event.SensorEvent;
+import ru.yandex.practicum.collector.model.event.SwitchSensorEvent;
+import ru.yandex.practicum.collector.model.event.TemperatureSensorEvent;
+import ru.yandex.practicum.kafka.telemetry.event.ClimateSensorAvro;
+import ru.yandex.practicum.kafka.telemetry.event.LightSensorAvro;
+import ru.yandex.practicum.kafka.telemetry.event.MotionSensorAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SensorEventAvro;
+import ru.yandex.practicum.kafka.telemetry.event.SwitchSensorAvro;
+import ru.yandex.practicum.kafka.telemetry.event.TemperatureSensorAvro;
 
 @Component
 public class SensorEventAvroMapper {
+    public SensorEventAvro toAvro(SensorEvent event) {
+        SpecificRecord payload = switch (event) {
+            case ClimateSensorEvent climateEvent -> ClimateSensorAvro.newBuilder()
+                    .setTemperatureC(climateEvent.temperatureC())
+                    .setHumidity(climateEvent.humidity())
+                    .setCo2Level(climateEvent.co2Level())
+                    .build();
+            case LightSensorEvent lightEvent -> LightSensorAvro.newBuilder()
+                    .setLinkQuality(lightEvent.linkQuality())
+                    .setLuminosity(lightEvent.luminosity())
+                    .build();
+            case MotionSensorEvent motionEvent -> MotionSensorAvro.newBuilder()
+                    .setLinkQuality(motionEvent.linkQuality())
+                    .setMotion(motionEvent.motion())
+                    .setVoltage(motionEvent.voltage())
+                    .build();
+            case SwitchSensorEvent switchEvent -> SwitchSensorAvro.newBuilder()
+                    .setState(switchEvent.state())
+                    .build();
+            case TemperatureSensorEvent temperatureEvent -> TemperatureSensorAvro.newBuilder()
+                    .setId(temperatureEvent.id())
+                    .setHubId(temperatureEvent.hubId())
+                    .setTimestamp(temperatureEvent.timestamp())
+                    .setTemperatureC(temperatureEvent.temperatureC())
+                    .setTemperatureF(temperatureEvent.temperatureF())
+                    .build();
+            default -> throw new IllegalArgumentException(
+                    "Unsupported sensor event: " + event.getClass().getName());
+        };
 
-    public SensorEventAvro toAvro(CollectSensorEventRequest event) {
-        Objects.requireNonNull(event, "Sensor event must not be null");
-
-        switch (event) {
-            case ClimateSensorEvent sensor -> {
-                return createSensorEvent(
-                        sensor.getId(),
-                        sensor.getHubId(),
-                        toInstant(sensor.getTimestamp()),
-                        ClimateSensorAvro.newBuilder()
-                                .setTemperatureC(requiredInt(
-                                        sensor.getTemperatureC(), "temperatureC"))
-                                .setHumidity(requiredInt(
-                                        sensor.getHumidity(), "humidity"))
-                                .setCo2Level(requiredInt(
-                                        sensor.getCo2Level(), "co2Level"))
-                                .build()
-                );
-            }
-            case LightSensorEvent sensor -> {
-                return createSensorEvent(
-                        sensor.getId(),
-                        sensor.getHubId(),
-                        toInstant(sensor.getTimestamp()),
-                        LightSensorAvro.newBuilder()
-                                .setLinkQuality(requiredInt(
-                                        sensor.getLinkQuality(), "linkQuality"))
-                                .setLuminosity(requiredInt(
-                                        sensor.getLuminosity(), "luminosity"))
-                                .build()
-                );
-            }
-            case MotionSensorEvent sensor -> {
-                return createSensorEvent(
-                        sensor.getId(),
-                        sensor.getHubId(),
-                        toInstant(sensor.getTimestamp()),
-                        MotionSensorAvro.newBuilder()
-                                .setLinkQuality(requiredInt(
-                                        sensor.getLinkQuality(), "linkQuality"))
-                                .setMotion(requiredBoolean(
-                                        sensor.getMotion(), "motion"))
-                                .setVoltage(requiredInt(
-                                        sensor.getVoltage(), "voltage"))
-                                .build()
-                );
-            }
-            case SwitchSensorEvent sensor -> {
-                return createSensorEvent(
-                        sensor.getId(),
-                        sensor.getHubId(),
-                        toInstant(sensor.getTimestamp()),
-                        SwitchSensorAvro.newBuilder()
-                                .setState(requiredBoolean(
-                                        sensor.getState(), "state"))
-                                .build()
-                );
-            }
-            case TemperatureSensorEvent sensor -> {
-                Instant timestamp = toInstant(sensor.getTimestamp());
-                TemperatureSensorAvro payload =
-                        TemperatureSensorAvro.newBuilder()
-                                .setId(requiredText(sensor.getId(), "id"))
-                                .setHubId(requiredText(sensor.getHubId(), "hubId"))
-                                .setTimestamp(timestamp)
-                                .setTemperatureC(requiredInt(
-                                        sensor.getTemperatureC(), "temperatureC"))
-                                .setTemperatureF(requiredInt(
-                                        sensor.getTemperatureF(), "temperatureF"))
-                                .build();
-
-                return createSensorEvent(
-                        sensor.getId(),
-                        sensor.getHubId(),
-                        timestamp,
-                        payload
-                );
-            }
-            default -> {
-            }
-        }
-
-        throw new IllegalArgumentException(
-                "Unsupported sensor event class: " + event.getClass().getName()
-        );
-    }
-
-    private SensorEventAvro createSensorEvent(
-            String id,
-            String hubId,
-            Instant timestamp,
-            SpecificRecord payload
-    ) {
         return SensorEventAvro.newBuilder()
-                .setId(requiredText(id, "id"))
-                .setHubId(requiredText(hubId, "hubId"))
-                .setTimestamp(timestamp)
+                .setId(event.id())
+                .setHubId(event.hubId())
+                .setTimestamp(event.timestamp())
                 .setPayload(payload)
                 .build();
-    }
-
-    private String requiredText(String value, String fieldName) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(
-                    "Required field is missing: " + fieldName
-            );
-        }
-        return value;
-    }
-
-    private int requiredInt(Integer value, String fieldName) {
-        if (value == null) {
-            throw new IllegalArgumentException(
-                    "Required field is missing: " + fieldName
-            );
-        }
-        return value;
-    }
-
-    private boolean requiredBoolean(Boolean value, String fieldName) {
-        if (value == null) {
-            throw new IllegalArgumentException(
-                    "Required field is missing: " + fieldName
-            );
-        }
-        return value;
-    }
-
-    private Instant toInstant(OffsetDateTime timestamp) {
-        return timestamp == null
-                ? Instant.now()
-                : timestamp.toInstant();
     }
 }
