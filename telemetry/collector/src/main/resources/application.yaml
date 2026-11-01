@@ -3,6 +3,8 @@ server:
 grpc:
   server:
     port: 59091
+    security:
+      enabled: false
 
 app:
   kafka:
