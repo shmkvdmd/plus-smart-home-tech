@@ -1,0 +1,46 @@
+spring:
+  main:
+    web-application-type: none
+
+  datasource:
+    url: ${ANALYZER_DB_URL:jdbc:postgresql://localhost:5432/analyzer}
+    username: ${ANALYZER_DB_USERNAME:postgres}
+    password: ${ANALYZER_DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+app:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+
+    topics:
+      snapshots: telemetry.snapshots.v1
+      hubs: telemetry.hubs.v1
+
+    consumers:
+      snapshots:
+        group-id: analyzer-snapshots
+        auto-offset-reset: earliest
+        enable-auto-commit: false
+
+      hub-events:
+        group-id: analyzer-hub-events
+        auto-offset-reset: earliest
+        enable-auto-commit: false
+
+grpc:
+  client:
+    hub-router:
+      address: 'static://localhost:59090'
+      enableKeepAlive: true
+      keepAliveWithoutCalls: true
+      negotiationType: plaintext
