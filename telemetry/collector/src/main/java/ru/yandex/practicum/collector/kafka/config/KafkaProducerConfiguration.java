@@ -21,19 +21,8 @@ public class KafkaProducerConfiguration {
     ) {
         Map<String, Object> producerProperties = new HashMap<>();
 
-        producerProperties.put(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                kafkaProperties.bootstrapServers()
-        );
-        producerProperties.put(
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class
-        );
-        producerProperties.put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                AvroSpecificRecordSerializer.class
-        );
+        producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaProperties.bootstrapServers());
 
-        return new KafkaProducer<>(producerProperties);
+        return new KafkaProducer<>(producerProperties, new StringSerializer(), new AvroSpecificRecordSerializer());
     }
 }
