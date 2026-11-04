@@ -1,4 +1,4 @@
-package ru.yandex.practicum.collector.kafka.serialization;
+package ru.yandex.practicum.kafka.telemetry;
 
 import org.apache.avro.io.BinaryEncoder;
 import org.apache.avro.io.EncoderFactory;

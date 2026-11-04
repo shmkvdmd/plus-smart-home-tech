@@ -1,10 +1,10 @@
 package ru.yandex.practicum.collector.kafka;
 
-import ru.yandex.practicum.collector.model.CollectHubEventRequest;
-import ru.yandex.practicum.collector.model.CollectSensorEventRequest;
+import ru.yandex.practicum.collector.model.event.HubEvent;
+import ru.yandex.practicum.collector.model.event.SensorEvent;
 
 public interface TelemetryEventPublisher {
-    void publishSensorEvent(CollectSensorEventRequest event);
+    void publishSensorEvent(SensorEvent event);
 
-    void publishHubEvent(CollectHubEventRequest event);
+    void publishHubEvent(HubEvent event);
 }
