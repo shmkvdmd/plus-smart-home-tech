@@ -48,8 +48,8 @@ CREATE OR REPLACE FUNCTION check_hub_id()
 RETURNS TRIGGER AS
 '
 BEGIN
-    IF (SELECT hub_id FROM scenarios WHERE id = NEW.scenario_id) != (SELECT hub_id FROM sensors WHERE id = NEW.sensor_id) THEN
-        RAISE EXCEPTION ''''Hub IDs do not match for scenario_id % and sensor_id %'''', NEW.scenario_id, NEW.sensor_id;
+    IF (SELECT hub_id FROM scenarios WHERE id = NEW.scenario_id) IS DISTINCT FROM (SELECT hub_id FROM sensors WHERE id = NEW.sensor_id) THEN
+        RAISE EXCEPTION ''Hub IDs do not match for scenario_id % and sensor_id %'', NEW.scenario_id, NEW.sensor_id;
     END IF;
     RETURN NEW;
 END;
